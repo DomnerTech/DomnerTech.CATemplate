@@ -1,0 +1,118 @@
+﻿{
+  "Serilog": {
+    "Using": [
+      "Mobile.Logging"
+    ],
+    "MinimumLevel": {
+      "Default": "Debug",
+      "Override": {
+        "Microsoft": "Debug",
+        "Elastic.Apm": "Error"
+      }
+    },
+    "WriteTo": [
+      {
+        "Name": "Async",
+        "Args": {
+          "configure": [
+            {
+              "Name": "Console",
+              "Args": {
+                "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss.fff}|{Level:u3}|{MachineName}|{CorrelationId}|{SourceContext}|{Message:lj}|{Exception}{NewLine}"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "Name": "Async",
+        "Args": {
+          "configure": [
+            {
+              "Name": "File",
+              "Args": {
+                "path": "C:\\inetpub\\private\\logs\\base-project-template\\api-.log",
+                "rollingInterval": "Day",
+                "shared": true,
+                "outputTemplate": "{Timestamp:HH:mm:ss.fff}|{Level:u3}|{MachineName}|{CorrelationId}|{SourceContext}|{Message:lj}|{Exception}{NewLine}"
+              }
+            }
+          ]
+        }
+      }
+    ],
+
+    "Filter": [
+      {
+        "Name": "ByExcluding",
+        "Args": {
+          "expression": "StartsWith(SourceContext, 'Microsoft.AspNetCore.')"
+        }
+      },
+      {
+        "Name": "ByExcluding",
+        "Args": {
+          "expression": "StartsWith(SourceContext, 'Microsoft.Extensions.Http.')"
+        }
+      },
+      {
+        "Name": "ByExcluding",
+        "Args": {
+          "expression": "StartsWith(SourceContext, 'System.Net.Http.HttpClient.')"
+        }
+      },
+      {
+        "Name": "ByExcluding",
+        "Args": {
+          "expression": "StartsWith(SourceContext, 'Correlate.AspNetCore')"
+        }
+      },
+      {
+        "Name": "ByExcluding",
+        "Args": {
+          "expression": "StartsWith(SourceContext, 'AspNetCore.Authentication.ApiKey')"
+        }
+      },
+      {
+        "Name": "ByExcluding",
+        "Args": {
+          "expression": "StartsWith(SourceContext, 'Elastic.Apm')"
+        }
+      }
+    ],
+    "Enrich": [
+      "FromLogContext",
+      "WithMachineName",
+      "WithThreadId",
+      "WithEnvironmentName",
+      "WithElasticApmCorrelationInfo"
+    ],
+    "Properties": {
+      "TelegramTopic": "2",
+      "service.name": "base-project",
+      "service.environment": "DEV"
+    },
+    "HttpClientConfig": {
+      "requestUri": "https://localhost:7777/api/v1/log/serilog",
+      "restrictedToMinimumLevel": "Error",
+      "queueLimitBytes": null,
+      "headers": {
+        "XApiKey": "JkCcPc1hFKZ0SX5neJUSMrk88IzqEDwpA4vzvBG2WM2HgAOwtKVDZDRjNKb28Z06"
+      }
+    },
+    "Elasticsearch": {
+      "nodeUris": "http://localhost:9200",
+      "username": "backend",
+      "password": "ec4N92875EOR",
+      "dataStream": {
+        "type": "logs",
+        "dataset": "base-project",
+        "namespace": "domner-tech"
+      },
+      "bootstrapMethod": "Silent",
+      "ilmPolicy": "be-domner-tech-logs-policy",
+      "MinimumLevel": "Debug",
+      "disableCertificateValidation": true
+    }
+  }
+}
