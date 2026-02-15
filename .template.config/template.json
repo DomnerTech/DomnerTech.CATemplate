@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "DomnerTech Backend",
+  "classifications": ["Web", "API", "C#"],
+  "identity": "DomnerTech.CA.ApiTemplate",
+  "name": "DomnerTech CA API Template",
+  "shortName": "mnt-ca",
+  "tags": {
+    "language": "C#",
+    "type": "solution"
+  },
+  "sourceName": "DomnerTech.CATemplate",
+  "description": "This is a scaffold clean architecture API project for DomnerTech Backend",
+  "sources": [
+    {
+      "source": "./",
+      "target": "./",
+      "include": ["**/*"],
+      "exclude": [
+        "**/.template.config/**",
+        "**/[Bb]in/**",
+        "**/[Oo]bj/**",
+        "**/.vs/**",
+        "**/.git/**",
+        "**/README.md",
+        "**/*.user"
+      ]
+    }
+  ]
+}
