@@ -1,3 +1,3 @@
 ﻿namespace DomnerTech.CATemplate.Application;
 
-public class ApplicationAssemblyMarker;
+public interface IApplicationAssemblyMarker;

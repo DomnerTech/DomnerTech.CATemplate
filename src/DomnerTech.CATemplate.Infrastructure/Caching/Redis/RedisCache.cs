@@ -1,29 +1,41 @@
-﻿using System.Text.Json;
+﻿using DomnerTech.CATemplate.Application;
 using DomnerTech.CATemplate.Application.IRepo;
 using DomnerTech.CATemplate.Application.Json;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
+using System.Text.Json;
 
 namespace DomnerTech.CATemplate.Infrastructure.Caching.Redis;
 
 public class RedisCache(
-    IDistributedCache cache,
-    ILogger<RedisCache> logger) : IRedisCacheClient
+    ILogger<RedisCache> logger,
+    IConnectionMultiplexer connectionMultiplexer,
+    AppSettings appSettings) : IRedisCache
 {
-    public Task SetObjectAsync<T>(string key, T value, CancellationToken cancellationToken = default)
-    {
-        return SetObjectAsync(key, value, new DistributedCacheEntryOptions(), cancellationToken);
-    }
+    private readonly IDatabase _database = connectionMultiplexer.GetDatabase();
+    private readonly string _instanceName = appSettings.Redis.InstanceName;
 
-    public async Task SetObjectAsync<T>(string key,
-        T value,
-        DistributedCacheEntryOptions options,
-        CancellationToken cancellationToken = default)
+    private const string DataFieldName = "data";
+    private const string ExpiryFieldName = "expiry";
+    public async Task SetObjectAsync<T>(string key, T value, DistributedCacheEntryOptions? options = null, CancellationToken cancellationToken = default)
     {
         try
         {
             var json = JsonConvert.SerializeObject(value, DefaultJsonSerializerSettings.SnakeCase);
-            await cache.SetStringAsync(key, json, options, cancellationToken);
+            var prefixedKey = new RedisKey($"{_instanceName}{key}");
+            var expiry = options?.AbsoluteExpiration.HasValue == true
+                ? options.AbsoluteExpiration.Value.UtcDateTime - DateTime.UtcNow
+                : options?.SlidingExpiration ?? TimeSpan.FromHours(1);
+
+            var hashEntries = new HashEntry[]
+            {
+                new(DataFieldName, json),
+                new(ExpiryFieldName, DateTimeOffset.UtcNow.Add(expiry).ToUnixTimeSeconds())
+            };
+
+            await _database.HashSetAsync(prefixedKey, hashEntries);
+            await _database.KeyExpireAsync(prefixedKey, expiry);
         }
         catch (Exception e)
         {
@@ -35,9 +47,9 @@ public class RedisCache(
     {
         try
         {
-            var value = await cache.GetStringAsync(key, cancellationToken);
-
-            return value is not null ? JsonConvert.DeserializeObject<T>(value, DefaultJsonSerializerSettings.SnakeCase) : default;
+            var prefixedKey = new RedisKey($"{_instanceName}{key}");
+            var value = await _database.HashGetAsync(prefixedKey, DataFieldName);
+            return value.HasValue ? JsonConvert.DeserializeObject<T>(value.ToString(), DefaultJsonSerializerSettings.SnakeCase) : default;
         }
         catch (Exception e)
         {
@@ -55,8 +67,19 @@ public class RedisCache(
     {
         try
         {
+            var prefixedKey = new RedisKey($"{_instanceName}{key}");
+            var expiry = options.AbsoluteExpiration.HasValue
+                ? options.AbsoluteExpiration.Value.UtcDateTime - DateTime.UtcNow
+                : options.SlidingExpiration ?? TimeSpan.FromHours(1);
             var json = JsonConvert.SerializeObject(value, setting);
-            await cache.SetStringAsync(key, json, options, cancellationToken);
+            var hashEntries = new HashEntry[]
+            {
+                new(DataFieldName, json),
+                new(ExpiryFieldName, DateTimeOffset.UtcNow.Add(expiry).ToUnixTimeSeconds())
+            };
+
+            await _database.HashSetAsync(prefixedKey, hashEntries);
+            await _database.KeyExpireAsync(prefixedKey, expiry);
         }
         catch (Exception e)
         {
@@ -68,9 +91,9 @@ public class RedisCache(
     {
         try
         {
-            var value = await cache.GetStringAsync(key, cancellationToken);
-
-            return value is not null ? JsonConvert.DeserializeObject<T>(value, setting) : default;
+            var prefixedKey = new RedisKey($"{_instanceName}{key}");
+            var value = await _database.HashGetAsync(prefixedKey, DataFieldName);
+            return value.HasValue ? JsonConvert.DeserializeObject<T>(value.ToString(), setting) : default;
         }
         catch (Exception e)
         {

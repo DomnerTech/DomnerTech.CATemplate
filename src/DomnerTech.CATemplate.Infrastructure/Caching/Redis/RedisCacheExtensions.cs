@@ -5,7 +5,7 @@ namespace DomnerTech.CATemplate.Infrastructure.Caching.Redis;
 
 public static class RedisCacheExtensions
 {
-    extension(IRedisCacheClient redis)
+    extension(IRedisCache redis)
     {
         public async Task<T?> RedisFallbackAsync<T>(string key,
             DistributedCacheEntryOptions options,
@@ -38,7 +38,7 @@ public static class RedisCacheExtensions
 
             if (value is not null)
             {
-                await redis.SetObjectAsync(key, value, cancellationToken);
+                await redis.SetObjectAsync(key, value, cancellationToken: cancellationToken);
             }
 
             return value;

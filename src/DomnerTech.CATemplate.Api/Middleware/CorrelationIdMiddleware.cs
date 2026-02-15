@@ -26,7 +26,7 @@ public sealed class CorrelationIdMiddleware : IMiddleware
         context.Items[HeaderConstants.CorrelationContextKey] = correlationId;
 
         context.Response.Headers[HeaderConstants.CorrelationId] = correlationId;
-        using (LogContext.PushProperty("userId", appIdValue))
+        using (LogContext.PushProperty("UserId", appIdValue.ToString()))
         {
             await next(context);
         }

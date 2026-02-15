@@ -2,7 +2,6 @@
 
 public class AppSettings
 {
-    public string ApiKey { get; set; } = string.Empty;
     public BearerAuthConfig BearerAuth { get; set; } = new();
     public SwaggerConfig Swagger { get; set; } = new();
     public RedisConfig Redis { get; set; } = new();
@@ -26,6 +25,8 @@ public class RedisConfig
     public int ConnectTimeout { get; set; }
     public RedisKeyConfig RedisKeySetting { get; set; } = new();
     public bool Ssl { get; set; }
+    public string InstanceName { get; set; } = string.Empty;
+    public string ClientName { get; set; } = string.Empty;
 }
 
 public class RedisKeyConfig;
@@ -33,7 +34,6 @@ public class RedisKeyConfig;
 public class ConnectionStringConfig
 {
     public string CacheDb { get; set; } = string.Empty;
-    public string MsSqlIBanking { get; set; } = string.Empty;
 }
 
 public class HttpClientOptionsItem

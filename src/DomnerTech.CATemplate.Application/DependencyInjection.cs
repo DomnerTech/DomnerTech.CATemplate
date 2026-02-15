@@ -8,13 +8,12 @@ using Elastic.Apm.MongoDb;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Mobile.CleanArchProjectTemplate.Application;
 
 namespace DomnerTech.CATemplate.Application;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddCommandQuery(cfg =>
         {
@@ -23,7 +22,7 @@ public static class DependencyInjection
             cfg.AddBehavior(typeof(ValidationBehavior<,>));
         });
 
-        var appAssembly = typeof(ApplicationAssemblyMarker).Assembly;
+        var appAssembly = typeof(IApplicationAssemblyMarker).Assembly;
 
         services.AddValidatorsFromAssembly(appAssembly);
 

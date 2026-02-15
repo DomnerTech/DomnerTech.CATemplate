@@ -4,7 +4,7 @@ using DomnerTech.CATemplate.Application.DTOs;
 
 namespace DomnerTech.CATemplate.Application.Features.Users;
 
-public sealed record CreateUserCommand(Guid UserId, string Username, int Age) :
+public sealed record CreateUserCommand(string Username, int Age) :
     IRequest<BaseResponse<bool>>,
     ILogCreator, 
     IValidatableRequest;
